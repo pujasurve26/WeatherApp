@@ -33,6 +33,10 @@ class ViewController: UIViewController {
         }
         
         txtEnterCity.delegate = self
+        
+        txtEnterCity.becomeFirstResponder()
+        
+        // Add gesture
         let gesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         view.addGestureRecognizer(gesture)
     }
@@ -44,26 +48,35 @@ class ViewController: UIViewController {
     func getWeather(city: String) {
         
         let objWebservice = WebService()
+        //show loading indicator
         let activity = UIActivityIndicatorView(style: .large)
         activity.color = .white
         activity.center = view.center
         view.addSubview(activity)
-        
         activity.startAnimating()
+        
         objWebservice.callAPI(city: city) { response, error in
+            //Hide loading indicator
             activity.stopAnimating()
             if response != nil {
+                //Set image as per weather condition
+                self.imgWeather.image = UIImage(systemName: response?.weather?[0].conditionName ?? "cloud")
+                
                 self.lblShowWeatherLabel.text = String(response?.main?.temp ?? 0.0) + "° C"
                 self.lblCityNameLabel.text = response?.name
             }
             else {
+                // Alert
                 let alert = UIAlertController(title: "Weather App", message: "Please enter valid city name and try again.", preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
                 self.present(alert, animated: true, completion: nil)
             }
         }
     }
+}
 
+ //MARK: - IBActions extension
+extension ViewController {
     @IBAction func btnSearchTapped(_ sender: Any) {
         if txtEnterCity.text!.isEmpty {
             let alert = UIAlertController(title: "Weather App", message: "Please enter city.", preferredStyle: .alert)
@@ -83,6 +96,7 @@ class ViewController: UIViewController {
     }
 }
 
+//MARK: - CLLocationManagerDelegate
 extension ViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         self.locationManager.stopUpdatingHeading()
@@ -102,6 +116,7 @@ extension ViewController: CLLocationManagerDelegate {
     }
 }
 
+//MARK: - UITextFieldDelegate
 extension ViewController: UITextFieldDelegate {
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if range.location == 0 && string == " " {
@@ -124,6 +139,7 @@ extension ViewController: UITextFieldDelegate {
     }
 }
 
+//MARK: - String extension
 extension String {
       func capitalizeFirstLetter() -> String {
            return self.prefix(1).capitalized + dropFirst()
